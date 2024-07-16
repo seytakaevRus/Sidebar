@@ -1,0 +1,21 @@
+name: CheckCodeQuality
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.13.0'
+      - name: Install modules
+        run: npm ci
+      - name: Set env
+        run: export NODE_ENV=production
+      - name: Run ESLint
+        run: npm run lint

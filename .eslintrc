@@ -1,0 +1,43 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "plugin:vue/vue3-recommended",
+    "eslint:recommended",
+    "@vue/airbnb",
+    "@vue/typescript/recommended",
+    "airbnb-typescript"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "project": ["tsconfig.json"]
+  },
+  "parser": "vue-eslint-parser",
+  "plugins": [],
+  "rules": {
+    "no-console": 1,
+    "import/prefer-default-export": 0,
+    "@typescript-eslint/no-inferrable-types": 0,
+    "no-restricted-syntax": 0,
+    "no-shadow": 0,
+    "@typescript-eslint/no-shadow": 2,
+    "no-extra-semi": 0,
+    "no-useless-return": 0,
+    "no-underscore-dangle": 0,
+    "@typescript-eslint/no-unused-vars": 2,
+    "vuejs-accessibility/form-control-has-label": 0,
+    "@typescript-eslint/no-explicit-any": 2,
+    "vue/multi-word-component-names": 0,
+    "no-param-reassign": "warn"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
+  "ignorePatterns": ["vite.config.ts"]
+}

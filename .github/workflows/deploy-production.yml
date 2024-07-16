@@ -1,0 +1,61 @@
+name: CIProduction
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@main
+      - name: Install dependencies
+        run: npm ci
+      - name: Setup .env file (Host)
+        run: |
+          echo '' > .env
+          echo "VITE_SSO_BACK=${{ vars.VITE_SSO_BACK }}" >> .env
+          echo "VITE_SSO_FRONT=${{ vars.VITE_SSO_FRONT }}" >> .env
+          echo "VITE_APP_ADAPTER_TIMEOUT=${{ vars.APP_ADAPTER_TIMEOUT }}" >> .env
+      - name: Build project
+        run: npm run build
+      - name: Set correct path to fonts in CSS file 
+        run: |
+          cd dist/assets
+          find . -regex ".\/main.[0-9a-z]*.css" -exec sed -i "s/\/assets//g" {} \;
+      - name: Prepare project
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          MAJOR=$(echo ${VERSION} | cut -d '.' -f 1)
+          MINOR=$(echo ${VERSION} | cut -d '.' -f 2)
+          cd dist/assets
+          find . -regex ".\/main.[0-9a-z]*.js" -exec cp {} "main.${MAJOR}.js" \;
+          cp "main.${MAJOR}.js" "main.${MAJOR}_${MINOR}.js"
+          find . -regex ".\/main.[0-9a-z]*.css" -exec cp {} "main.${MAJOR}.css" \;
+          cp "main.${MAJOR}.css" "main.${MAJOR}_${MINOR}.css"
+      - name: Archive project
+        run: |
+          tar -C dist/assets -cvf build.tar.gz .
+      - name: Copy build via scp
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "build.tar.gz"
+          target: ${{ secrets.TARGET }}
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/sidebar/prod
+            sudo mv /home/${{ secrets.USERNAME }}/build.tar.gz .
+            sudo tar -xvf build.tar.gz
+            sudo rm -f build.tar.gz
+            cd ..
+            sudo chown -R www-data:www-data prod
